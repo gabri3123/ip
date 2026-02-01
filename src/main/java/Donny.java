@@ -12,14 +12,29 @@ public class Donny {
 
         String line;
         Scanner in = new Scanner(System.in);
+        String[] list = new String[100];
+        int size = 0;
 
         while (true) {
             line = in.nextLine();
-            System.out.println(longline + line + "\n");
+
+            if (line.equalsIgnoreCase("list")) {
+                System.out.println(longline);
+                for (int i = 0; i < size; i++) {
+                    System.out.println((i + 1) + "." + list[i] + "\n");
+                }
+                System.out.println(longline);
+                continue;
+            }
+
             if (line.equalsIgnoreCase("bye")) {
                 System.out.println(longline + "See you again, bye!\n" + longline);
                 break;
             }
+
+            list[size] = line;
+            size ++;
+            System.out.println(longline + "added:" + line + "\n");
         }
     }
 }
