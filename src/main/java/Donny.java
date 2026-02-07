@@ -21,11 +21,12 @@ public class Donny {
             line = in.nextLine();
 
             if (line.equalsIgnoreCase("list")) {
+
                 System.out.println(longline);
-                System.out.println("Here are tasks in your list\n");
+                System.out.println(" Here are the tasks in your list:");
 
                 for (int i = 0; i < size; i++) {
-                    System.out.println((i + 1) + ".[" + tasks[i].getStatusIcon() + "] " + tasks[i].getDescription());
+                    System.out.println(" " + (i + 1) + "." + tasks[i]);
                 }
 
                 System.out.println(longline);
@@ -58,6 +59,48 @@ public class Donny {
                 continue;
             }
 
+            if (line.toLowerCase().startsWith("todo")) {
+
+                String desc = line.substring(5);
+                tasks[size++] = new Todo(desc);
+
+                System.out.println(longline);
+                System.out.println(" Got it. I've added this task:");
+                System.out.println("   " + tasks[size-1]);
+                System.out.println(" Now you have " + size + " tasks in the list.");
+                System.out.println(longline);
+                continue;
+            }
+
+            if (line.toLowerCase().startsWith("deadline")) {
+
+                String[] parts = line.substring(9).split("/by");
+
+                tasks[size++] = new Deadline(parts[0].trim(), parts[1].trim());
+
+                System.out.println(longline);
+                System.out.println(" Got it. I've added this task:");
+                System.out.println("   " + tasks[size-1]);
+                System.out.println(" Now you have " + size + " tasks in the list.");
+                System.out.println(longline);
+                continue;
+            }
+
+            if (line.toLowerCase().startsWith("event")) {
+
+                String[] parts = line.substring(6).split("/from|/to");
+
+                tasks[size++] = new Event(parts[0].trim(),
+                        parts[1].trim(),
+                        parts[2].trim());
+
+                System.out.println(longline);
+                System.out.println(" Got it. I've added this task:");
+                System.out.println("   " + tasks[size-1]);
+                System.out.println(" Now you have " + size + " tasks in the list.");
+                System.out.println(longline);
+                continue;
+            }
 
             if (line.equalsIgnoreCase("bye")) {
                 System.out.println(longline + "See you again, bye!\n" + longline);
