@@ -6,45 +6,52 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Storage {
+    private static final String SPLIT_REGEX = "\\s*\\|\\s*";
+    private static final String DELIMITER = " | ";
+
+    private static final String DONE = "1";
+    private static final String NOT_DONE = "0";
+
+    private static final String TYPE_TODO = "T";
+    private static final String TYPE_DEADLINE = "D";
+    private static final String TYPE_EVENT = "E";
+
+    private static final int MIN_PARTS = 3;
+    private static final int IDX_TYPE = 0;
+    private static final int IDX_DONE = 1;
+    private static final int IDX_DESC = 2;
+    private static final int IDX_DEADLINE_BY = 3;
+    private static final int IDX_EVENT_FROM = 3;
+    private static final int IDX_EVENT_TO = 4;
+
     private final Path filePath;
 
     public Storage(String relativePath) {
-        this.filePath = Paths.get(relativePath); // OS-independent
+        this.filePath = Paths.get(relativePath);
     }
 
     public ArrayList<Task> load() throws DonnyException {
-        ensureFileExists();
+        ensureStorageReady();
 
+        List<String> lines = readAllLines();
         ArrayList<Task> tasks = new ArrayList<>();
-        List<String> lines;
-
-        try {
-            lines = Files.readAllLines(filePath);
-        } catch (IOException e) {
-            throw new DonnyException("Unable to read save file: " + filePath);
-        }
 
         for (String line : lines) {
             if (line.trim().isEmpty()) {
                 continue;
             }
-            try {
-                tasks.add(parseLine(line));
-            } catch (DonnyException e) {
-                // corrupted line: skip it (stretch goal handling)
-                // you can also choose to throw instead
-            }
+            tasks.add(parseLine(line)); // fail fast on corrupted lines
         }
 
         return tasks;
     }
 
     public void save(ArrayList<Task> tasks) throws DonnyException {
-        ensureFileExists();
+        ensureStorageReady();
 
         ArrayList<String> lines = new ArrayList<>();
         for (Task task : tasks) {
-            lines.add(serializeTask(task));
+            lines.add(task.toStorageString());
         }
 
         try {
@@ -54,7 +61,15 @@ public class Storage {
         }
     }
 
-    private void ensureFileExists() throws DonnyException {
+    private List<String> readAllLines() throws DonnyException {
+        try {
+            return Files.readAllLines(filePath);
+        } catch (IOException e) {
+            throw new DonnyException("Unable to read save file: " + filePath);
+        }
+    }
+
+    private void ensureStorageReady() throws DonnyException {
         try {
             Path parent = filePath.getParent();
             if (parent != null && !Files.exists(parent)) {
@@ -69,74 +84,76 @@ public class Storage {
     }
 
     private Task parseLine(String line) throws DonnyException {
-        // Formats:
-        // T | 1 | read book
-        // D | 0 | return book | Sunday
-        // E | 0 | meeting | Mon 2pm | Mon 4pm
-
-        String[] parts = line.split("\\s*\\|\\s*");
-        if (parts.length < 3) {
+        String[] parts = line.split(SPLIT_REGEX);
+        if (parts.length < MIN_PARTS) {
             throw new DonnyException("Corrupted save line: " + line);
         }
 
-        String type = parts[0];
-        String doneFlag = parts[1];
-        String desc = parts[2];
+        String type = parts[IDX_TYPE];
+        boolean isDone = parseDoneFlag(parts[IDX_DONE], line);
+        String desc = parts[IDX_DESC];
 
-        boolean isDone;
-        if (doneFlag.equals("1")) {
-            isDone = true;
-        } else if (doneFlag.equals("0")) {
-            isDone = false;
-        } else {
-            throw new DonnyException("Corrupted done flag in line: " + line);
+        Task task = createTask(type, desc, parts, line);
+        setTaskDoneStatus(task, isDone);
+        return task;
+    }
+
+    private boolean parseDoneFlag(String doneFlag, String originalLine) throws DonnyException {
+        if (DONE.equals(doneFlag)) {
+            return true;
         }
+        if (NOT_DONE.equals(doneFlag)) {
+            return false;
+        }
+        throw new DonnyException("Corrupted done flag in line: " + originalLine);
+    }
 
-        Task task;
+    private Task createTask(String type, String desc, String[] parts, String originalLine) throws DonnyException {
         switch (type) {
-        case "T":
-            task = new Todo(desc);
-            break;
-        case "D":
-            if (parts.length < 4) {
-                throw new DonnyException("Corrupted deadline line: " + line);
-            }
-            task = new Deadline(desc, parts[3]);
-            break;
-        case "E":
-            if (parts.length < 5) {
-                throw new DonnyException("Corrupted event line: " + line);
-            }
-            task = new Event(desc, parts[3], parts[4]);
-            break;
+        case TYPE_TODO:
+            return new Todo(desc);
+        case TYPE_DEADLINE:
+            requireParts(parts, IDX_DEADLINE_BY + 1, "Corrupted deadline line: " + originalLine);
+            return new Deadline(desc, parts[IDX_DEADLINE_BY]);
+        case TYPE_EVENT:
+            requireParts(parts, IDX_EVENT_TO + 1, "Corrupted event line: " + originalLine);
+            return new Event(desc, parts[IDX_EVENT_FROM], parts[IDX_EVENT_TO]);
         default:
-            throw new DonnyException("Unknown task type in line: " + line);
+            throw new DonnyException("Unknown task type in line: " + originalLine);
         }
+    }
 
+    private void requireParts(String[] parts, int requiredLength, String errorMessage) throws DonnyException {
+        if (parts.length < requiredLength) {
+            throw new DonnyException(errorMessage);
+        }
+    }
+
+    private void setTaskDoneStatus(Task task, boolean isDone) {
         if (isDone) {
             task.markAsDone();
         } else {
             task.markAsNotDone();
         }
-
-        return task;
     }
 
     private String serializeTask(Task task) throws DonnyException {
-        String done = task.isDone() ? "1" : "0";
+        String done = task.isDone() ? DONE : NOT_DONE;
 
         if (task instanceof Todo) {
-            return "T | " + done + " | " + task.getDescription();
+            return TYPE_TODO + DELIMITER + done + DELIMITER + task.getDescription();
         }
 
         if (task instanceof Deadline) {
             Deadline d = (Deadline) task;
-            return "D | " + done + " | " + d.getDescription() + " | " + d.getBy();
+            return TYPE_DEADLINE + DELIMITER + done + DELIMITER + d.getDescription()
+                    + DELIMITER + d.getBy();
         }
 
         if (task instanceof Event) {
             Event e = (Event) task;
-            return "E | " + done + " | " + e.getDescription() + " | " + e.getFrom() + " | " + e.getTo();
+            return TYPE_EVENT + DELIMITER + done + DELIMITER + e.getDescription()
+                    + DELIMITER + e.getFrom() + DELIMITER + e.getTo();
         }
 
         throw new DonnyException("Unknown task type, cannot save.");

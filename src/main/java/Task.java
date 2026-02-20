@@ -1,15 +1,18 @@
-public class Task {
-
-    protected String description;
-    protected boolean isDone;
+public abstract class Task {
+    private final String description;
+    private boolean isDone;
 
     public Task(String description) {
         this.description = description;
         this.isDone = false;
     }
 
-    public String getStatusIcon() {
-        return isDone ? "X" : " ";
+    public String getDescription() {
+        return description;
+    }
+
+    public boolean isDone() {
+        return isDone;
     }
 
     public void markAsDone() {
@@ -20,14 +23,15 @@ public class Task {
         isDone = false;
     }
 
-    public String getDescription() {
-        return description;
+    protected String getStatusIcon() {
+        return isDone ? "X" : " ";
     }
-    public boolean isDone() { return isDone; }
+
+    /** Returns the line format used for saving into the data file. */
+    public abstract String toStorageString();
 
     @Override
     public String toString() {
         return "[" + getStatusIcon() + "] " + description;
     }
-
 }

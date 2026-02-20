@@ -1,7 +1,9 @@
 public class Event extends Task {
+    private static final String DONE = "1";
+    private static final String NOT_DONE = "0";
 
-    protected String from;
-    protected String to;
+    private final String from;
+    private final String to;
 
     public Event(String description, String from, String to) {
         super(description);
@@ -15,6 +17,12 @@ public class Event extends Task {
 
     public String getTo() {
         return to;
+    }
+
+    @Override
+    public String toStorageString() {
+        String done = isDone() ? DONE : NOT_DONE;
+        return "E | " + done + " | " + getDescription() + " | " + from + " | " + to;
     }
 
     @Override
