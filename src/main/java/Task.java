@@ -23,6 +23,7 @@ public class Task {
     public String getDescription() {
         return description;
     }
+    public boolean isDone() { return isDone; }
 
     @Override
     public String toString() {

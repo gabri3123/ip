@@ -14,7 +14,19 @@ public class Donny {
         System.out.println("Hello! I'm \n" + logo + "\n" + "What can I do for you? \n");
 
         Scanner in = new Scanner(System.in);
-        ArrayList<Task> tasks = new ArrayList<>();
+
+        Storage storage = new Storage("./data/donny.txt");
+
+        ArrayList<Task> tasks;
+        try {
+            tasks = storage.load();
+        } catch (DonnyException e) {
+            tasks = new ArrayList<>();
+            System.out.println(LONG_LINE);
+            System.out.println(" OOPS! " + e.getMessage());
+            System.out.println(" Starting with an empty task list.");
+            System.out.println(LONG_LINE);
+        }
 
         while (true) {
             String line = in.nextLine();
@@ -33,6 +45,7 @@ public class Donny {
                 if (line.toLowerCase().startsWith("mark")) {
                     int index = parseIndex(line, tasks.size());
                     tasks.get(index).markAsDone();
+                    storage.save(tasks);
                     System.out.println(LONG_LINE);
                     System.out.println(" Nice! I've marked this task as done:\n");
                     System.out.println("  " + tasks.get(index));
@@ -43,6 +56,7 @@ public class Donny {
                 if (line.toLowerCase().startsWith("unmark")) {
                     int index = parseIndex(line, tasks.size());
                     tasks.get(index).markAsNotDone();
+                    storage.save(tasks);
                     System.out.println(LONG_LINE);
                     System.out.println(" OK, I've marked this task as not done yet:\n");
                     System.out.println("  " + tasks.get(index));
@@ -53,7 +67,7 @@ public class Donny {
                 if (line.toLowerCase().startsWith("delete")) {
                     int index = parseIndex(line, tasks.size());
                     Task removed = tasks.remove(index);
-
+                    storage.save(tasks);
                     System.out.println(LONG_LINE);
                     System.out.println(" Noted. I've removed this task:");
                     System.out.println("   " + removed);
@@ -69,6 +83,7 @@ public class Donny {
                     }
 
                     tasks.add(new Todo(desc));
+                    storage.save(tasks);
                     printAdded(tasks.get(tasks.size() - 1), tasks.size());
                     continue;
                 }
@@ -85,6 +100,7 @@ public class Donny {
                     }
 
                     tasks.add(new Deadline(parts[0].trim(), parts[1].trim()));
+                    storage.save(tasks);
                     printAdded(tasks.get(tasks.size() - 1), tasks.size());
                     continue;
                 }
@@ -108,6 +124,7 @@ public class Donny {
                     }
 
                     tasks.add(new Event(description, second[0].trim(), second[1].trim()));
+                    storage.save(tasks);
                     printAdded(tasks.get(tasks.size() - 1), tasks.size());
                     continue;
                 }
