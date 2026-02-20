@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Donny {
@@ -13,8 +14,19 @@ public class Donny {
         System.out.println("Hello! I'm \n" + logo + "\n" + "What can I do for you? \n");
 
         Scanner in = new Scanner(System.in);
-        Task[] tasks = new Task[100];
-        int size = 0;
+
+        Storage storage = new Storage("./data/donny.txt");
+
+        ArrayList<Task> tasks;
+        try {
+            tasks = storage.load();
+        } catch (DonnyException e) {
+            tasks = new ArrayList<>();
+            System.out.println(LONG_LINE);
+            System.out.println(" OOPS! " + e.getMessage());
+            System.out.println(" Starting with an empty task list.");
+            System.out.println(LONG_LINE);
+        }
 
         while (true) {
             String line = in.nextLine();
@@ -26,26 +38,40 @@ public class Donny {
                 }
 
                 if (line.equalsIgnoreCase("list")) {
-                    printList(tasks, size);
+                    printList(tasks);
                     continue;
                 }
 
                 if (line.toLowerCase().startsWith("mark")) {
-                    int index = parseIndex(line, size);
-                    tasks[index].markAsDone();
+                    int index = parseIndex(line, tasks.size());
+                    tasks.get(index).markAsDone();
+                    storage.save(tasks);
                     System.out.println(LONG_LINE);
                     System.out.println(" Nice! I've marked this task as done:\n");
-                    System.out.println("  " + tasks[index]);
+                    System.out.println("  " + tasks.get(index));
                     System.out.println(LONG_LINE);
                     continue;
                 }
 
                 if (line.toLowerCase().startsWith("unmark")) {
-                    int index = parseIndex(line, size);
-                    tasks[index].markAsNotDone();
+                    int index = parseIndex(line, tasks.size());
+                    tasks.get(index).markAsNotDone();
+                    storage.save(tasks);
                     System.out.println(LONG_LINE);
                     System.out.println(" OK, I've marked this task as not done yet:\n");
-                    System.out.println("  " + tasks[index]);
+                    System.out.println("  " + tasks.get(index));
+                    System.out.println(LONG_LINE);
+                    continue;
+                }
+
+                if (line.toLowerCase().startsWith("delete")) {
+                    int index = parseIndex(line, tasks.size());
+                    Task removed = tasks.remove(index);
+                    storage.save(tasks);
+                    System.out.println(LONG_LINE);
+                    System.out.println(" Noted. I've removed this task:");
+                    System.out.println("   " + removed);
+                    System.out.println(" Now you have " + tasks.size() + " tasks in the list.");
                     System.out.println(LONG_LINE);
                     continue;
                 }
@@ -56,8 +82,9 @@ public class Donny {
                         throw new DonnyException("I need a description for a todo. Try: todo read book");
                     }
 
-                    tasks[size++] = new Todo(desc);
-                    printAdded(tasks[size - 1], size);
+                    tasks.add(new Todo(desc));
+                    storage.save(tasks);
+                    printAdded(tasks.get(tasks.size() - 1), tasks.size());
                     continue;
                 }
 
@@ -72,8 +99,9 @@ public class Donny {
                         throw new DonnyException("Deadline format should be: deadline <description> /by <time>");
                     }
 
-                    tasks[size++] = new Deadline(parts[0].trim(), parts[1].trim());
-                    printAdded(tasks[size - 1], size);
+                    tasks.add(new Deadline(parts[0].trim(), parts[1].trim()));
+                    storage.save(tasks);
+                    printAdded(tasks.get(tasks.size() - 1), tasks.size());
                     continue;
                 }
 
@@ -95,8 +123,9 @@ public class Donny {
                         throw new DonnyException("Event format should be: event <description> /from <start> /to <end>");
                     }
 
-                    tasks[size++] = new Event(description, second[0].trim(), second[1].trim());
-                    printAdded(tasks[size - 1], size);
+                    tasks.add(new Event(description, second[0].trim(), second[1].trim()));
+                    storage.save(tasks);
+                    printAdded(tasks.get(tasks.size() - 1), tasks.size());
                     continue;
                 }
 
@@ -116,11 +145,11 @@ public class Donny {
         }
     }
 
-    private static void printList(Task[] tasks, int size) {
+    private static void printList(ArrayList<Task> tasks) {
         System.out.println(LONG_LINE);
         System.out.println(" Here are the tasks in your list:");
-        for (int i = 0; i < size; i++) {
-            System.out.println(" " + (i + 1) + ". " + tasks[i]);
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println(" " + (i + 1) + ". " + tasks.get(i));
         }
         System.out.println(LONG_LINE);
     }
