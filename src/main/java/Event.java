@@ -1,27 +1,49 @@
+/**
+ * Represents a task that happens over a time period.
+ */
 public class Event extends Task {
-    private static final String DONE = "1";
-    private static final String NOT_DONE = "0";
-
     private final String from;
     private final String to;
 
+    /**
+     * Creates an event task.
+     *
+     * @param description event description
+     * @param from event start
+     * @param to event end
+     */
     public Event(String description, String from, String to) {
         super(description);
         this.from = from;
         this.to = to;
     }
 
+    /**
+     * Returns the event start time.
+     *
+     * @return start time string
+     */
     public String getFrom() {
         return from;
     }
 
+    /**
+     * Returns the event end time.
+     *
+     * @return end time string
+     */
     public String getTo() {
         return to;
     }
 
+    /**
+     * Returns the save-file representation of this event task.
+     *
+     * @return storage string for event
+     */
     @Override
     public String toStorageString() {
-        String done = isDone() ? DONE : NOT_DONE;
+        String done = isDone() ? "1" : "0";
         return "E | " + done + " | " + getDescription() + " | " + from + " | " + to;
     }
 

@@ -1,14 +1,25 @@
+/**
+ * Represents a todo task without any date or time information.
+ */
 public class Todo extends Task {
-    private static final String DONE = "1";
-    private static final String NOT_DONE = "0";
 
+    /**
+     * Creates a todo task with the given description.
+     *
+     * @param description todo description
+     */
     public Todo(String description) {
         super(description);
     }
 
+    /**
+     * Returns the save-file representation of this todo task.
+     *
+     * @return storage string for todo
+     */
     @Override
     public String toStorageString() {
-        String done = isDone() ? DONE : NOT_DONE;
+        String done = isDone() ? "1" : "0";
         return "T | " + done + " | " + getDescription();
     }
 
