@@ -1,0 +1,66 @@
+import java.util.Scanner;
+
+public class Ui {
+    private static final String LONG_LINE = "_________________________________\n";
+    private final Scanner scanner;
+
+    public Ui() {
+        scanner = new Scanner(System.in);
+    }
+
+    public String readCommand() {
+        return scanner.nextLine();
+    }
+
+    public void printWelcome() {
+        String logo = " ____   ___   _   _   _   _   _  _ \n"
+                + "|  _ \\ / _ \\ | \\ | | | \\ | | | \\/ |\n"
+                + "| | | | | | ||  \\| | |  \\| | \\   /\n"
+                + "| |_| | |_| || |\\  | | |\\  |  | | \n"
+                + "|____/ \\___/ |_| \\_| |_| \\_|  |_|  \n";
+
+        System.out.println("Hello! I'm \n" + logo + "\n" + "What can I do for you? \n");
+    }
+
+    public void printExitMessage() {
+        System.out.println(LONG_LINE + "See you again, bye!\n" + LONG_LINE);
+    }
+
+    public void printError(String message) {
+        System.out.println(LONG_LINE);
+        System.out.println(" " + message);
+        System.out.println(LONG_LINE);
+    }
+
+    public void printTaskStatusChange(String header, Task task) {
+        System.out.println(LONG_LINE);
+        System.out.println(" " + header + "\n");
+        System.out.println("  " + task);
+        System.out.println(LONG_LINE);
+    }
+
+    public void printList(TaskList tasks) {
+        System.out.println(LONG_LINE);
+        System.out.println(" Here are the tasks in your list:");
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println(" " + (i + 1) + ". " + tasks.get(i));
+        }
+        System.out.println(LONG_LINE);
+    }
+
+    public void printAdded(Task task, int size) {
+        System.out.println(LONG_LINE);
+        System.out.println(" Got it. I've added this task:");
+        System.out.println("   " + task);
+        System.out.println(" Now you have " + size + " tasks in the list.");
+        System.out.println(LONG_LINE);
+    }
+
+    public void printDeleted(Task removed, int size) {
+        System.out.println(LONG_LINE);
+        System.out.println(" Noted. I've removed this task:");
+        System.out.println("   " + removed);
+        System.out.println(" Now you have " + size + " tasks in the list.");
+        System.out.println(LONG_LINE);
+    }
+}
