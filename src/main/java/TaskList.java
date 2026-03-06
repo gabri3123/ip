@@ -11,6 +11,18 @@ public class TaskList {
         this.tasks = tasks;
     }
 
+    public TaskList find(String keyword) {
+        TaskList matches = new TaskList();
+
+        for (Task task : tasks) {
+            if (task.getDescription().toLowerCase().contains(keyword.toLowerCase())) {
+                matches.addTask(task);
+            }
+        }
+
+        return matches;
+    }
+
     public void addTask(Task task) {
         tasks.add(task);
     }

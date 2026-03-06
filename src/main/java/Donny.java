@@ -71,6 +71,9 @@ public class Donny {
         case "event":
             addEvent(args);
             break;
+        case "find":
+            findTask(args);
+            break;
         default:
             throw new DonnyException(
                     "I don't understand that command. Try: list, todo, deadline, event, mark, unmark, bye");
@@ -117,5 +120,14 @@ public class Donny {
         tasks.addTask(task);
         storage.save(tasks.getTasks());
         ui.printAdded(task, tasks.size());
+    }
+
+    private void findTask(String args) throws DonnyException {
+        if (args.isEmpty()) {
+            throw new DonnyException("Please provide a keyword to search.");
+        }
+
+        TaskList matches = tasks.find(args);
+        ui.printFindResults(matches);
     }
 }
